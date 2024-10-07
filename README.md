@@ -1,3 +1,3 @@
 # docs
 
-The public documentation for Pulse App.
+The public documentation for Korben Hosting.
