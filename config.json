@@ -1,15 +1,15 @@
 {
-  "siteName": "Pulse App",
+  "siteName": "Korben Hosting",
   "metadata": {
     "title": {
-      "default": "Pulse Docs",
-      "template": "%s • Pulse Docs"
+      "default": "Korben Hosting",
+      "template": "%s • Korben Hosting"
     },
-    "description": "A lightweight service monitoring solution for tracking the availability of whatever service your heart desires!",
+    "description": "Official documentation for Korben Hosting",
     "openGraph": {
       "images": [
         {
-          "url": "https://pulseapp.cc/media/logo.png",
+          "url": "https://www.korben.cc/icon.png",
           "width": 128,
           "height": 128
         }
@@ -22,53 +22,49 @@
   "viewport": {
     "themeColor": "#A855F7"
   },
-  "contentSource": "https://git.rainnny.club/PulseApp/docs-content.git",
-  "contentEditUrl": "https://git.rainnny.club/PulseApp/docs-content/src/branch/master/{slug}{ext}",
+  "contentSource": "https://www.github.com/KorbenCC/docs-content.git",
+  "contentEditUrl": "https://www.github.com/KorbenCC/docs-content/src/branch/master/{slug}{ext}",
   "socialLinks": [
     {
-      "name": "GitHub",
-      "tooltip": "View our Github",
-      "logo": "./github.svg",
-      "href": "https://github.com/PulseAppCC",
+      "name": "Main Website",
+      "tooltip": "Visit our main website",
+      "logo": "Globe",
+      "href": "https://www.korben.cc",
       "navbar": true
     },
     {
       "name": "Discord",
-      "tooltip": "Join our Discord",
+      "tooltip": "Join our official Discord server",
       "logo": "./discord.svg",
-      "href": "https://discord.pulseapp.cc",
+      "href": "https://discord.korben.cc",
       "navbar": true
     },
     {
-      "name": "Email",
+      "name": "Contact",
       "tooltip": "Email us",
       "logo": "Mail",
-      "href": "mailto:support@pulseapp.cc",
+      "href": "mailto:hello@korben.cc",
       "navbar": false
     }
   ],
   "footer": {
-    "homeUrl": "https://pulseapp.cc",
+    "homeUrl": "https://www.korben.cc",
     "links": {
       "Resources": [
         {
-          "name": "Support",
-          "href": "https://support.pulseapp.cc"
+          "name": "Client Area",
+          "href": "https://billing.korben.cc",
+          "external": true
         },
         {
-          "name": "Jobs",
-          "href": "https://jobs.pulseapp.cc"
-        },
-        {
-          "name": "Developers",
-          "shortName": "Devs",
-          "href": "https://dev.pulseapp.cc",
+          "name": "Game Panel",
+          "href": "https://panel.korben.cc",
           "external": true
         },
         {
           "name": "System Status",
           "shortName": "Status",
-          "href": "https://status.pulseapp.cc",
+          "href": "https://status.korben.cc",
           "external": true
         }
       ],
@@ -76,12 +72,14 @@
         {
           "name": "Terms & Conditions",
           "shortName": "Terms",
-          "href": "/legal/terms"
+          "href": "https://www.korben.cc/legal/terms",
+          "external": true
         },
         {
           "name": "Privacy Policy",
           "shortName": "Privacy",
-          "href": "/legal/privacy"
+          "href": "https://www.korben.cc/legal/privacy",
+          "external": true
         }
       ]
     }
