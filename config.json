@@ -1,0 +1,89 @@
+{
+  "siteName": "Pulse App",
+  "metadata": {
+    "title": {
+      "default": "Pulse Docs",
+      "template": "%s • Pulse Docs"
+    },
+    "description": "A lightweight service monitoring solution for tracking the availability of whatever service your heart desires!",
+    "openGraph": {
+      "images": [
+        {
+          "url": "https://pulseapp.cc/media/logo.png",
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    "twitter": {
+      "card": "summary"
+    }
+  },
+  "viewport": {
+    "themeColor": "#A855F7"
+  },
+  "contentSource": "https://git.rainnny.club/PulseApp/docs-content.git",
+  "contentEditUrl": "https://git.rainnny.club/PulseApp/docs-content/src/branch/master/{slug}{ext}",
+  "socialLinks": [
+    {
+      "name": "GitHub",
+      "tooltip": "View our Github",
+      "logo": "./github.svg",
+      "href": "https://github.com/PulseAppCC",
+      "navbar": true
+    },
+    {
+      "name": "Discord",
+      "tooltip": "Join our Discord",
+      "logo": "./discord.svg",
+      "href": "https://discord.pulseapp.cc",
+      "navbar": true
+    },
+    {
+      "name": "Email",
+      "tooltip": "Email us",
+      "logo": "Mail",
+      "href": "mailto:support@pulseapp.cc",
+      "navbar": false
+    }
+  ],
+  "footer": {
+    "homeUrl": "https://pulseapp.cc",
+    "links": {
+      "Resources": [
+        {
+          "name": "Support",
+          "href": "https://support.pulseapp.cc"
+        },
+        {
+          "name": "Jobs",
+          "href": "https://jobs.pulseapp.cc"
+        },
+        {
+          "name": "Developers",
+          "shortName": "Devs",
+          "href": "https://dev.pulseapp.cc",
+          "external": true
+        },
+        {
+          "name": "System Status",
+          "shortName": "Status",
+          "href": "https://status.pulseapp.cc",
+          "external": true
+        }
+      ],
+      "Legal": [
+        {
+          "name": "Terms & Conditions",
+          "shortName": "Terms",
+          "href": "/legal/terms"
+        },
+        {
+          "name": "Privacy Policy",
+          "shortName": "Privacy",
+          "href": "/legal/privacy"
+        }
+      ]
+    }
+  }
+}

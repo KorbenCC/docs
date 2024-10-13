@@ -6,7 +6,6 @@ node_modules
 .env*.local
 next-env.d.ts
 .sentryclirc
-.env
 sw.*
 workbox-*
 swe-worker-*

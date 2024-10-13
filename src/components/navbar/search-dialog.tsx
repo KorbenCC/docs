@@ -9,10 +9,10 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { Search } from "lucide-react";
 
 /**
  * The dialog for quickly searching the docs.
@@ -21,14 +21,19 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
  */
 const QuickSearchDialog = ({
     pages,
+    bindKeybind = false,
 }: {
     pages: DocsContentMetadata[];
+    bindKeybind?: boolean;
 }): ReactElement => {
     const [open, setOpen] = useState<boolean>(false);
     const router: AppRouterInstance = useRouter();
 
     // Listen for CTRL + K keybinds to open this dialog
     useEffect(() => {
+        if (!bindKeybind) {
+            return;
+        }
         const handleKeyDown = (event: KeyboardEvent): void => {
             if ((event.ctrlKey || event.metaKey) && event.key === "k") {
                 event.preventDefault();
@@ -37,7 +42,7 @@ const QuickSearchDialog = ({
         };
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, []);
+    }, [bindKeybind]);
 
     // Render the contents
     return (
@@ -47,8 +52,8 @@ const QuickSearchDialog = ({
                 className="cursor-pointer hover:opacity-85 transition-all transform-gpu select-none"
                 onClick={() => setOpen(true)}
             >
-                <div className="absolute top-2.5 left-3 z-10">
-                    <MagnifyingGlassIcon className="w-[1.15rem] h-[1.15rem]" />
+                <div className="absolute top-[0.55rem] left-3 z-10">
+                    <Search className="w-[1.15rem] h-[1.15rem]" />
                 </div>
 
                 <Input
@@ -109,5 +114,4 @@ const QuickSearchDialog = ({
         </>
     );
 };
-
 export default QuickSearchDialog;

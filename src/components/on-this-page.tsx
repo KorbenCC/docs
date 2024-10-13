@@ -1,10 +1,15 @@
 "use client";
 
 import { ReactElement, useEffect, useRef, useState } from "react";
-import { Bars3CenterLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { truncateText } from "@/lib/string";
+import { motion, useInView } from "framer-motion";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { AlignLeftIcon, ArrowUpFromDot, MoveRight } from "lucide-react";
+import config from "@/config";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Header = {
     id: string;
@@ -19,6 +24,9 @@ const OnThisPage = ({ page }: { page: DocsContentMetadata }): ReactElement => {
     );
     const observerRef = useRef<IntersectionObserver | undefined>(undefined);
 
+    const ref = useRef<HTMLDivElement>(null);
+    const inView = useInView(ref);
+
     useEffect(() => {
         // Regular expression to match markdown headers
         const headerRegex: RegExp = /^(#{1,6})\s+(.*)$/gm;
@@ -27,7 +35,7 @@ const OnThisPage = ({ page }: { page: DocsContentMetadata }): ReactElement => {
         let match;
         while ((match = headerRegex.exec(page.content)) !== null) {
             const level: number = match[1].length; // The number of # symbols determines the header level
-            const text: string = match[2].trim();
+            const text: string = match[2].trim().replace(/<[^>]*>/g, "");
             const id: string = text
                 .toLowerCase()
                 .replace(/\s+/g, "-")
@@ -71,48 +79,115 @@ const OnThisPage = ({ page }: { page: DocsContentMetadata }): ReactElement => {
     }, [headers]);
 
     return (
-        <div className="w-44 flex flex-col gap-2 text-sm select-none">
+        <motion.div
+            ref={ref}
+            className="sticky top-[7.5rem] w-44 max-h-[calc(100vh-3.5rem)] flex flex-col gap-2 text-sm select-none"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: inView ? 1 : 0 }}
+            transition={{ duration: 0.2 }}
+        >
             {/* Title */}
             <div className="flex gap-2.5 items-center">
-                <Bars3CenterLeftIcon className="w-5 h-5" />
+                <AlignLeftIcon className="w-5 h-5" />
                 <h1>On This Page</h1>
             </div>
 
             {/* Headers */}
             <ul className="relative">
-                {headers.map((header: Header) => (
-                    <li
-                        key={header.id}
-                        className={cn(
-                            "hover:opacity-80 transition-all transform-gpu relative",
-                            activeHeader === header.id
-                                ? "font-semibold text-primary"
-                                : "opacity-65"
-                        )}
-                        style={{ paddingLeft: `${(header.level - 1) * 16}px` }}
-                    >
-                        {/* Indentation */}
-                        {header.level > 1 && (
-                            <div
-                                className="absolute left-0 top-0 bottom-0 border-l border-muted"
-                                style={{
-                                    left: `${(header.level - 2) * 16 + 4}px`,
-                                }}
-                            />
-                        )}
-
-                        {/* Header */}
-                        <Link
-                            href={`#${header.id}`}
-                            draggable={false}
-                            className="block py-1"
+                {headers.length === 0 ? (
+                    <Skeleton className="w-full h-5 bg-accent rounded-lg" />
+                ) : (
+                    headers.map((header: Header) => (
+                        <li
+                            key={header.id}
+                            className={cn(
+                                "hover:opacity-80 transition-all transform-gpu relative",
+                                activeHeader === header.id
+                                    ? "font-semibold text-primary"
+                                    : "opacity-65"
+                            )}
+                            style={{
+                                paddingLeft: `${(header.level - 1) * 16}px`,
+                            }}
                         >
-                            {truncateText(header.text, 26)}
-                        </Link>
-                    </li>
-                ))}
+                            {/* Indentation */}
+                            {header.level > 1 && (
+                                <div
+                                    className="absolute left-0 top-0 bottom-0 border-l border-accent"
+                                    style={{
+                                        left: `${(header.level - 2) * 16 + 4}px`,
+                                    }}
+                                />
+                            )}
+
+                            {/* Header */}
+                            <Link
+                                href={`#${header.id}`}
+                                draggable={false}
+                                className="block py-1"
+                            >
+                                {truncateText(header.text, 20)}
+                            </Link>
+                        </li>
+                    ))
+                )}
             </ul>
-        </div>
+
+            {/* Footer */}
+            <div>
+                <Separator className="mt-1 mb-3.5 dark:bg-separator-gradient" />
+                <Footer page={page} />
+            </div>
+        </motion.div>
     );
 };
+
+const Footer = ({ page }: { page: DocsContentMetadata }): ReactElement => {
+    const [hasScrolled, setHasScrolled] = useState<boolean>(false);
+
+    useEffect(() => {
+        const handleScroll = () => setHasScrolled(window.scrollY > 400);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    return (
+        <footer className="flex flex-col opacity-75">
+            {/* Edit on Git */}
+            <Link
+                className="flex gap-1.5 items-center text-xs hover:opacity-75 transition-all transform-gpu group"
+                href={config.contentEditUrl
+                    .replace("{slug}", page.slug as string)
+                    .replace("{ext}", page.extension as string)}
+                target="_blank"
+                draggable={false}
+            >
+                <span>Edit this page on GitHub</span>
+                <MoveRight className="w-4 h-4 group-hover:translate-x-px transition-all transform-gpu" />
+            </Link>
+
+            {/* Scroll to Top */}
+            <div
+                className={cn(
+                    "transition-opacity transform-gpu",
+                    hasScrolled
+                        ? "opacity-100"
+                        : "opacity-0 pointer-events-none"
+                )}
+            >
+                <Button
+                    className="p-0 justify-start flex gap-1.5 items-center text-xs hover:bg-transparent hover:opacity-75 transition-all transform-gpu group"
+                    variant="ghost"
+                    onClick={() =>
+                        window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                >
+                    <span>Scroll to Top</span>
+                    <ArrowUpFromDot className="w-4 h-4 group-hover:-translate-y-px transition-all transform-gpu" />
+                </Button>
+            </div>
+        </footer>
+    );
+};
+
 export default OnThisPage;

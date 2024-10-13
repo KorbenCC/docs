@@ -8,14 +8,19 @@ type DocsContentMetadata = MDXMetadata & {
     title: string;
 
     /**
-     * The date this content was published.
+     * The date this content was updated.
      */
-    published: string;
+    updated: string;
 
     /**
      * The summary of this content.
      */
     summary: string;
+
+    /**
+     * The order of this content.
+     */
+    order: number;
 };
 
 /**

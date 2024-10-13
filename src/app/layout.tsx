@@ -5,62 +5,56 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "@/components/navbar/navbar";
 import Sidebar from "@/components/sidebar/sidebar";
 import Footer from "@/components/footer";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { getDocsContent } from "@/lib/mdx";
+import config from "@/config";
 
 /**
  * The metadata for this app.
  */
-export const metadata: Metadata = {
-    title: {
-        default: "Pulse Docs",
-        template: "%s • Pulse Docs",
-    },
-    description:
-        "A lightweight service monitoring solution for tracking the availability of whatever service your heart desires!",
-    openGraph: {
-        images: [
-            {
-                url: "https://pulseapp.cc/media/logo.png",
-                width: 128,
-                height: 128,
-            },
-        ],
-    },
-    twitter: {
-        card: "summary",
-    },
-};
-export const viewport: Viewport = {
-    themeColor: "#A855F7",
-};
+export const metadata: Metadata = config.metadata;
+export const viewport: Viewport = config.viewport;
+
+export const dynamic = "force-dynamic";
 
 /**
  * The primary layout for this app.
  */
-const RootLayout = ({
+const RootLayout = async ({
     children,
 }: Readonly<{
     children: ReactNode;
-}>): ReactElement => (
-    <html lang="en">
-        <body
-            className="scroll-smooth antialiased"
-            style={{
-                background: "var(--background-gradient)",
-            }}
-        >
-            <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-                <div className="px-7 max-w-[90rem] mx-auto min-h-screen flex flex-col">
-                    <Navbar />
-                    <div className="pt-[4.5rem] w-full h-full flex flex-grow gap-5">
-                        <div className="relative hidden xs:flex">
-                            <Sidebar />
+}>): Promise<ReactElement> => {
+    const pages: DocsContentMetadata[] = await getDocsContent();
+    return (
+        <html lang="en">
+            <body
+                className="scroll-smooth antialiased"
+                style={{
+                    background: "var(--background-gradient)",
+                }}
+            >
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="dark"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <TooltipProvider delayDuration={100}>
+                        <div className="px-3 md:px-7 max-w-screen-2xl min-h-screen mx-auto flex flex-col transition-transform">
+                            <Navbar pages={pages} />
+                            <div className="pt-[4.5rem] w-full h-full flex flex-grow gap-5 sm:gap-8 transition-transform transform-gpu">
+                                <div className="relative hidden xs:flex">
+                                    <Sidebar pages={pages} />
+                                </div>
+                                {children}
+                            </div>
                         </div>
-                        {children}
-                    </div>
-                </div>
-                <Footer />
-            </ThemeProvider>
-        </body>
-    </html>
-);
+                        <Footer />
+                    </TooltipProvider>
+                </ThemeProvider>
+            </body>
+        </html>
+    );
+};
 export default RootLayout;

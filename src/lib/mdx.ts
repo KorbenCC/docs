@@ -1,6 +1,9 @@
 import * as fs from "node:fs";
 import { Stats } from "node:fs";
 import path from "node:path";
+import config from "@/config";
+import simpleGit from "simple-git";
+import os from "node:os";
 
 /**
  * The regex to match for metadata.
@@ -8,20 +11,53 @@ import path from "node:path";
 const METADATA_REGEX: RegExp = /---\s*([\s\S]*?)\s*---/;
 
 /**
- * The directory docs are stored in.
+ * Check if the DOCS_DIR is a Git URL.
  */
-const DOCS_DIR: string = path.join(process.cwd(), "docs");
+const isGitUrl = (url: string): boolean => {
+    return /^https?:\/\/|git@|\.git$/.test(url);
+};
 
 /**
- * Get the content to
- * display in the docs.
+ * The directory docs are stored in.
  */
-export const getDocsContent = (): DocsContentMetadata[] => {
-    const content: DocsContentMetadata[] = [];
-    for (const directory of getRecursiveDirectories(DOCS_DIR)) {
-        content.push(...getMetadata<DocsContentMetadata>(DOCS_DIR, directory));
+const DOCS_DIR: string = isGitUrl(config.contentSource)
+    ? config.contentSource
+    : path.join(config.contentSource.replace("{process}", process.cwd()));
+
+/**
+ * Clone the Git repository if DOCS_DIR is a URL, else use the local directory.
+ * If it's a Git URL, clone it to a cache directory and reuse it.
+ */
+const getDocsDirectory = async (): Promise<string> => {
+    if (isGitUrl(DOCS_DIR)) {
+        const repoHash: string = Buffer.from(DOCS_DIR).toString("base64"); // Create a unique identifier based on the repo URL
+        const cacheDir: string = path.join(os.tmpdir(), "docs_cache", repoHash);
+
+        // Pull the latest changes from the repo if we don't have it
+        if (!fs.existsSync(cacheDir) || fs.readdirSync(cacheDir).length < 1) {
+            try {
+                await simpleGit().clone(DOCS_DIR, cacheDir, { "--depth": 1 });
+            } catch (error) {}
+        }
+        return cacheDir;
     }
-    return content;
+    return DOCS_DIR;
+};
+
+/**
+ * Get the content to display in the docs.
+ */
+export const getDocsContent = async (): Promise<DocsContentMetadata[]> => {
+    const docsDir: string = await getDocsDirectory();
+    const content: DocsContentMetadata[] = [];
+    for (const directory of getRecursiveDirectories(docsDir)) {
+        content.push(...getMetadata<DocsContentMetadata>(docsDir, directory));
+    }
+    return content.sort((a: DocsContentMetadata, b: DocsContentMetadata) => {
+        const orderA = a.order ?? Number.MAX_SAFE_INTEGER;
+        const orderB = b.order ?? Number.MAX_SAFE_INTEGER;
+        return orderA - orderB;
+    });
 };
 
 /**
@@ -41,18 +77,27 @@ const getMetadata = <T extends MDXMetadata>(
             const extension: string = path.extname(file); // The file extension
             return extension === ".md" || extension === ".mdx";
         }); // Read the MDX files
-    return files.map((file: string): T => {
+    const metadata: T[] = [];
+    for (let i = files.length - 1; i >= 0; i--) {
+        const file: string = files[i];
         const filePath: string = path.join(directory, file); // The path of the file
-        return {
+        const fileMetadata: T | undefined = parseMetadata<T>(
+            fs.readFileSync(filePath, "utf-8")
+        );
+        if (!fileMetadata) {
+            continue;
+        }
+        metadata.push({
             slug: filePath
                 .replace(parent, "")
                 .replace(/\\/g, "/") // Normalize the path
                 .replace(/\.mdx?$/, "")
                 .substring(1),
             extension: path.extname(file),
-            ...parseMetadata<T>(fs.readFileSync(filePath, "utf-8")),
-        }; // Map each file to its metadata
-    });
+            ...fileMetadata,
+        });
+    }
+    return metadata;
 };
 
 /**
@@ -63,8 +108,15 @@ const getMetadata = <T extends MDXMetadata>(
  * @returns the metadata and content
  * @template T the type of metadata
  */
-const parseMetadata = <T extends MDXMetadata>(content: string): T => {
-    const metadataBlock: string = METADATA_REGEX.exec(content)![1]; // Get the block of metadata
+const parseMetadata = <T extends MDXMetadata>(
+    content: string
+): T | undefined => {
+    const extracted = METADATA_REGEX.exec(content);
+    const metadataBlock: string | undefined =
+        extracted && extracted.length > 1 ? extracted[1] : undefined; // Get the block of metadata
+    if (!metadataBlock) {
+        return undefined;
+    }
     content = content.replace(METADATA_REGEX, "").trim(); // Remove the metadata block from the content
     const metadata: Partial<{
         [key: string]: string;

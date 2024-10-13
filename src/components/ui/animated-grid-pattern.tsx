@@ -70,6 +70,7 @@ export function GridPattern({
         if (dimensions.width && dimensions.height) {
             setSquares(generateSquares(numSquares));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dimensions, numSquares]);
 
     // Resize observer to update container dimensions
@@ -82,14 +83,16 @@ export function GridPattern({
                 });
             }
         });
+        let current = undefined;
 
         if (containerRef.current) {
             resizeObserver.observe(containerRef.current);
+            current = containerRef.current;
         }
 
         return () => {
-            if (containerRef.current) {
-                resizeObserver.unobserve(containerRef.current);
+            if (current) {
+                resizeObserver.unobserve(current);
             }
         };
     }, [containerRef]);

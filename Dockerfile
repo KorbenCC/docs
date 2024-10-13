@@ -13,7 +13,7 @@ FROM base AS builder
 WORKDIR /usr/src/app
 COPY --from=depends /usr/src/app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN bun run build
 
 
@@ -32,14 +32,15 @@ COPY --from=builder --chown=nextjs:nextjs /usr/src/app/.next ./.next
 COPY --from=builder --chown=nextjs:nextjs /usr/src/app/public ./public
 COPY --from=builder --chown=nextjs:nextjs /usr/src/app/next.config.mjs ./next.config.mjs
 COPY --from=builder --chown=nextjs:nextjs /usr/src/app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nextjs /usr/src/app/docs ./docs
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Exposting on port 80 so we can
 # access via a reverse proxy for Dokku
-ENV HOSTNAME "0.0.0.0"
+ENV HOSTNAME="0.0.0.0"
 EXPOSE 80
-ENV PORT 80
+ENV PORT=80
 
 USER nextjs
-CMD node server.js
+CMD ["node", "server.js"]

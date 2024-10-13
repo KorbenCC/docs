@@ -11,7 +11,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { ChevronRight } from "lucide-react";
 
 const SidebarLinks = ({
     pages,
@@ -20,11 +20,11 @@ const SidebarLinks = ({
 }): ReactElement => {
     const tree = useMemo(() => buildTree(pages), [pages]);
     return (
-        <>
+        <div className="flex flex-col gap-1">
             {Object.values(tree).map((node: TreeNode) => (
                 <CategoryItem key={node.slug} node={node} />
             ))}
-        </>
+        </div>
     );
 };
 
@@ -44,21 +44,22 @@ const CategoryItem = ({
     depth?: number;
     isLast?: boolean;
 }) => {
-    const path = usePathname();
+    const path = decodeURIComponent(usePathname());
     const active =
         (path === "/" && node.slug === "intro") || path === `/${node.slug}`;
     const [isOpen, setIsOpen] = useState(true);
     const hasChildren = Object.keys(node.children).length > 0;
 
     return (
-        <div className={`relative ${depth > 0 ? "ml-2.5" : ""} select-none`}>
+        <div className={cn(`relative select-none`, depth > 0 && "ml-3")}>
             {/* Indentation */}
             {depth > 0 && (
                 <div
-                    className={`absolute left-0 top-1 bottom-0 border-l-2 border-muted`}
-                    style={{
-                        height: isLast ? "30px" : "100%",
-                    }}
+                    className={cn(
+                        "absolute left-0 bottom-0 border-l border-accent",
+                        isLast ? "h-[32px]" : "h-[100%]",
+                        active && "border-primary"
+                    )}
                 />
             )}
 
@@ -71,9 +72,13 @@ const CategoryItem = ({
                     >
                         <Button
                             className={cn(
-                                `relative px-1.5 ${depth > 0 ? "pl-4" : ""} w-full justify-between`,
+                                `relative w-full px-1.5 h-8 justify-between hover:bg-accent/35 hover:opacity-90`,
+                                node.isFolder
+                                    ? "mb-0.5 text-sm font-semibold"
+                                    : "lg:text-base",
+                                depth > 0 && "pl-4",
                                 active &&
-                                    "bg-primary/15 hover:bg-primary/20 text-primary/95 hover:text-primary"
+                                    "text-primary/95 font-semibold hover:text-primary"
                             )}
                             variant="ghost"
                         >
@@ -81,10 +86,10 @@ const CategoryItem = ({
                             {hasChildren && (
                                 <motion.div
                                     initial={false}
-                                    animate={{ rotate: isOpen ? 90 : 180 }}
+                                    animate={{ rotate: isOpen ? 90 : 0 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    <ChevronRightIcon className="w-4 h-4" />
+                                    <ChevronRight className="w-4 h-4" />
                                 </motion.div>
                             )}
                         </Button>
@@ -101,11 +106,10 @@ const CategoryItem = ({
                                 animate="open"
                                 exit="collapsed"
                                 variants={{
-                                    open: { opacity: 1, height: "auto", y: 0 },
+                                    open: { opacity: 1, height: "auto" },
                                     collapsed: {
                                         opacity: 0,
                                         height: 0,
-                                        y: -20,
                                     },
                                 }}
                                 transition={{
@@ -135,7 +139,7 @@ const CategoryItem = ({
 const buildTree = (pages: DocsContentMetadata[]): Record<string, TreeNode> => {
     const tree: Record<string, TreeNode> = {};
 
-    pages.forEach((page) => {
+    pages.forEach((page: DocsContentMetadata) => {
         const parts: string[] | undefined = page.slug?.split("/");
         let currentLevel = tree;
 
