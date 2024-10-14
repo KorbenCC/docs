@@ -4,6 +4,8 @@ import path from "node:path";
 import config from "@/config";
 import simpleGit from "simple-git";
 import os from "node:os";
+import { cache } from "react";
+import "server-only";
 
 /**
  * The regex to match for metadata.
@@ -24,25 +26,63 @@ const DOCS_DIR: string = isGitUrl(config.contentSource)
     ? config.contentSource
     : path.join(config.contentSource.replace("{process}", process.cwd()));
 
+const LAST_UPDATE_FILE = path.join(
+    os.tmpdir(),
+    "docs_cache",
+    "last_update.json"
+);
+const CACHE_DURATION_MS: number = 5 * 60 * 1000; // 5 minutes in milliseconds
+
 /**
  * Clone the Git repository if DOCS_DIR is a URL, else use the local directory.
  * If it's a Git URL, clone it to a cache directory and reuse it.
  */
-const getDocsDirectory = async (): Promise<string> => {
+const getDocsDirectory = cache(async (): Promise<string> => {
     if (isGitUrl(DOCS_DIR)) {
         const repoHash: string = Buffer.from(DOCS_DIR).toString("base64"); // Create a unique identifier based on the repo URL
         const cacheDir: string = path.join(os.tmpdir(), "docs_cache", repoHash);
 
         // Pull the latest changes from the repo if we don't have it
         if (!fs.existsSync(cacheDir) || fs.readdirSync(cacheDir).length < 1) {
+            console.log("Cloning initial docs content from Git...");
             try {
                 await simpleGit().clone(DOCS_DIR, cacheDir, { "--depth": 1 });
-            } catch (error) {}
+                storeUpdatedRepoTime();
+            } catch (error) {
+                // Simply ignore this error. When cloning the repo for
+                // the first time, it'll sometimes error saying the dir
+                // is already created.
+            }
+        } else if (shouldUpdateRepo()) {
+            // Pull the latest changes from Git
+            console.log("Pulling docs content from Git...");
+            await simpleGit(cacheDir)
+                .reset(["--hard"]) // Reset any local changes
+                .pull(); // Pull latest changes
+            storeUpdatedRepoTime();
         }
         return cacheDir;
     }
     return DOCS_DIR;
+});
+
+const shouldUpdateRepo = (): boolean => {
+    if (!fs.existsSync(LAST_UPDATE_FILE)) {
+        return true;
+    }
+    return (
+        Date.now() -
+            JSON.parse(fs.readFileSync(LAST_UPDATE_FILE, "utf-8")).lastUpdate >
+        CACHE_DURATION_MS
+    );
 };
+
+const storeUpdatedRepoTime = () =>
+    fs.writeFileSync(
+        LAST_UPDATE_FILE,
+        JSON.stringify({ lastUpdate: Date.now() }),
+        "utf-8"
+    );
 
 /**
  * Get the content to display in the docs.

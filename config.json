@@ -1,5 +1,6 @@
 {
   "siteName": "Korben Hosting",
+  "ogApiUrl": "https://docs.korben.cc/api/og?title={title}",
   "metadata": {
     "title": {
       "default": "Korben Hosting",
